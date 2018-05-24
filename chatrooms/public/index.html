@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Chat</title>
+    <link rel="stylesheet" href="./stylesheet/style.css" type="text/css">
+  </head>
+  <body>
+    <div id='content'>
+      Room name: <span id='room'>Default</span><div>
+      You're name is <span id="name">no_name</span><div>
+      <div id='messages'></div>
+
+      <form id='send-form' action="" method="get" onsubmit='return false;'>
+        <input type="text" id='send-message'>
+        <input type="submit" id='send-button' value="Send">
+        <div id='help'>
+          Chat commands:
+          <ul>
+            <li>Change nickname: /nick [string]</li>
+            <li>Join/create room: /join [string]</li>
+          </ul>
+        </div>
+      </form>
+    </div>
+    <script type="text/javascript" src='./socket.io/socket.io.js'></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+    <script>
+    $(() => {
+      const socket = io()
+      socket.emit('join')
+
+      $('#send-form').submit(()=>{
+        const wordArr = $('#send-message').val().split(' ')
+
+        if(wordArr[0] == '/nick' && wordArr[1] != ''){
+          socket.emit('name', {
+            room: $('#room').text(),
+            oldname: $('#name').text(),
+            newname: wordArr[1]
+          })
+          $('#name').text(wordArr[1])
+          $('#send-message').val('')
+          return false
+        }else if(wordArr[0] == '/join' && wordArr[1] != ''){
+          socket.emit('room', {
+            name: $('#name').text(),
+            room: wordArr[1],
+            oldroom: $('#room').text()
+          })
+          $('#room').text(wordArr[1])
+          $('#send-message').val('')
+          $('#message').val('')
+          return false
+        }else{
+          socket.emit('message', {
+            room: $('#room').text(),
+            name: $('#name').text(),
+            msg: $('#send-message').val()
+          })
+          $('#send-message').val('')
+          return false
+        }
+      })
+      socket.on('reception', (msg) => {
+        $('#messages').append(msg)
+      })
+    })
+    </script>
+  </body>
+</html>
